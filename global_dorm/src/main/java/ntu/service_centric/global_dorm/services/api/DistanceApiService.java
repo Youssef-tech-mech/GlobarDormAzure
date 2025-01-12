@@ -1,41 +1,53 @@
 package ntu.service_centric.global_dorm.services.api;
 
-import ntu.service_centric.global_dorm.models.api.DistanceResponseDTO;
-import ntu.service_centric.global_dorm.services.DistanceServiceClient;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.Map;
 
 @Service
 public class DistanceApiService {
 
-    @Autowired
-    private DistanceServiceClient distanceServiceClient;
+    @Value("${distance.api.url}")
+    private String osrmBaseUrl;
 
-    /**
-     * Calculate the distance from the selected room to a campus location.
-     *
-     * @param roomId ID of the room
-     * @param campusLat Latitude of the campus
-     * @param campusLon Longitude of the campus
-     * @return DistanceResponseDTO with the calculated distance
-     */
-    public DistanceResponseDTO calculateDistanceToCampus(String roomId, double campusLat, double campusLon) {
-        // Fetch room details (hardcoded or fetched from DB)
-        double roomLat = getRoomLatitude(roomId);
-        double roomLon = getRoomLongitude(roomId);
+    @Value("${nominatim.api.url}")
+    private String nominatimApiUrl;
 
-        return distanceServiceClient.calculateDistance(roomLat, roomLon, campusLat, campusLon);
+    private final RestTemplate restTemplate;
+
+    public DistanceApiService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
     }
 
-    private double getRoomLatitude(String roomId) {
-        // Replace with actual logic to fetch room latitude
-        return 52.9548; // Example latitude
+    // Resolve city name to coordinates using Nominatim API
+    public String resolveCityToCoordinates(String cityName) {
+        String url = String.format("%s/search?q=%s&format=json&limit=1", nominatimApiUrl, cityName);
+
+        try {
+            Map<String, Object>[] response = restTemplate.getForObject(url, Map[].class);
+
+            if (response != null && response.length > 0) {
+                String lat = (String) response[0].get("lat");
+                String lon = (String) response[0].get("lon");
+                return lon + "," + lat;
+            } else {
+                throw new RuntimeException("City not found: " + cityName);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error resolving city name to coordinates: " + e.getMessage(), e);
+        }
     }
 
-    private double getRoomLongitude(String roomId) {
-        // Replace with actual logic to fetch room longitude
-        return -1.1581; // Example longitude
+    // Calculate distance using OSRM API
+    public Map<String, Object> calculateDistance(String profile, String startCoordinates, String endCoordinates) {
+        String url = String.format("%s/%s/%s;%s", osrmBaseUrl, profile, startCoordinates, endCoordinates);
+
+        try {
+            return restTemplate.getForObject(url, Map.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Error calling OSRM Distance API: " + e.getMessage(), e);
+        }
     }
 }

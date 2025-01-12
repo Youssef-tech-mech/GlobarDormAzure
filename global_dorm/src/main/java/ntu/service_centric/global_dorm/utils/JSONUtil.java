@@ -1,4 +1,4 @@
-package ntu.service_centric.global_dorm.util;
+package ntu.service_centric.global_dorm.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

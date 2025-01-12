@@ -1,4 +1,4 @@
-package ntu.service_centric.global_dorm.util;
+package ntu.service_centric.global_dorm.utils;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;

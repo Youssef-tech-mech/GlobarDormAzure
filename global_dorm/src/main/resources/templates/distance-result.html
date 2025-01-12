@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distance Results</title>
+</head>
+<body>
+<h1>Distance Results</h1>
+
+<!-- Display Routes -->
+<h2>Routes:</h2>
+<ul>
+    <li th:each="route : ${routes}">
+        Distance: <span th:text="${route.distance}"></span>,
+        Duration: <span th:text="${route.duration}"></span>
+    </li>
+</ul>
+
+<!-- Display Waypoints -->
+<h2>Waypoints:</h2>
+<ul>
+    <li th:each="waypoint : ${waypoints}">
+        Name: <span th:text="${waypoint.name}"></span>,
+        Location: <span th:text="${waypoint.location}"></span>
+    </li>
+</ul>
+
+<a href="/api/distance">Back to Distance Form</a>
+</body>
+</html>

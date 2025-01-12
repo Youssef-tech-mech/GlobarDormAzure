@@ -1,16 +1,14 @@
 package ntu.service_centric.global_dorm.services;
 
 import ntu.service_centric.global_dorm.models.User;
-import ntu.service_centric.global_dorm.models.api.LoginRequest;
-import ntu.service_centric.global_dorm.models.api.LoginResponse;
 import ntu.service_centric.global_dorm.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 @Service
 public class UserService {
@@ -19,107 +17,93 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     /**
-     * Retrieve all users.
-     *
-     * @return List of all users.
+     * Retrieve all users from the database.
      */
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
     /**
-     * Retrieve a user by ID.
-     *
-     * @param id User ID.
-     * @return User if found, otherwise null.
+     * Retrieve a user by their userID (int).
      */
-    public User getUserById(String id) {
-        try {
-            Long userId = Long.parseLong(id);
-            Optional<User> user = userRepository.findById(userId);
-            return user.orElse(null);
-        } catch (NumberFormatException e) {
-            return null;
-        }
+    public Optional<User> getUserById(int userID) {
+        return userRepository.findByUserID(userID);
     }
 
     /**
-     * Create a new user.
-     *
-     * @param user User to create.
-     * @return The created user.
+     * Retrieve a user by their email address.
      */
-    public User createUser(@RequestBody User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword())); // Hash password before saving
+    public Optional<User> getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    /**
+     * Check if an email is already in use.
+     */
+    public boolean emailExists(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    /**
+     * Create a new user with email uniqueness check, password hashing, and auto-generated userID.
+     */
+    public User createUser(User user) {
+        if (emailExists(user.getEmail())) {
+            throw new IllegalArgumentException("Email is already in use.");
+        }
+
+        // Generate the smallest available userID
+        int smallestAvailableUserID = generateSmallestAvailableUserID();
+        user.setUserID(smallestAvailableUserID);
+
+        // Hash the password before saving
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
         return userRepository.save(user);
     }
 
     /**
-     * Update an existing user.
-     *
-     * @param id          User ID.
-     * @param updatedUser User object with updated details.
-     * @return Updated user if found, otherwise null.
+     * Generate the smallest available userID based on existing users.
      */
-    public User updateUser(String id, User updatedUser) {
-        try {
-            Long userId = Long.parseLong(id);
-            return userRepository.findById(userId).map(existingUser -> {
-                existingUser.setName(updatedUser.getName());
-                existingUser.setEmail(updatedUser.getEmail());
-                if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
-                    existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword())); // Update password if provided
-                }
-                existingUser.setRole(updatedUser.getRole());
-                return userRepository.save(existingUser);
-            }).orElse(null);
-        } catch (NumberFormatException e) {
-            return null;
-        }
+    private int generateSmallestAvailableUserID() {
+        List<Integer> usedUserIDs = userRepository.findAll().stream()
+                .map(User::getUserID)
+                .sorted()
+                .toList();
+
+        return IntStream.range(1, Integer.MAX_VALUE)
+                .filter(id -> !usedUserIDs.contains(id))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No available user IDs."));
     }
 
     /**
-     * Delete a user by ID.
-     *
-     * @param id User ID.
-     * @return true if the user was deleted, false otherwise.
+     * Update an existing user's details.
      */
-    public boolean deleteUser(String id) {
-        try {
-            Long userId = Long.parseLong(id);
-            if (userRepository.existsById(userId)) {
-                userRepository.deleteById(userId);
-                return true;
+    public Optional<User> updateUser(int userID, User user) {
+        return userRepository.findByUserID(userID).map(existingUser -> {
+            existingUser.setEmail(user.getEmail());
+            existingUser.setName(user.getName());
+            if (!passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
+                existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
             }
-        } catch (NumberFormatException e) {
-            return false;
-        }
-        return false;
+            existingUser.setRole(user.getRole());
+            return userRepository.save(existingUser);
+        });
     }
 
-    public LoginResponse login(LoginRequest loginRequest) {
-        System.out.println("LoginRequest object: " + loginRequest);
-        System.out.println("Email from request: " + loginRequest.getEmail());
-        System.out.println("Password from request: " + loginRequest.getPassword());
-
-        Optional<User> userOptional = userRepository.findByEmail(loginRequest.getEmail());
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-                String token = generateToken(user);
-                return new LoginResponse(user.getEmail(), user.getRole(), token);
-            }
-        }
-        return null;
+    /**
+     * Delete a user by their userID (int).
+     */
+    public boolean deleteUser(int userID) {
+        return userRepository.findByUserID(userID).map(user -> {
+            userRepository.delete(user);
+            return true;
+        }).orElse(false);
     }
 
-    private String generateToken(User user) {
-        // Placeholder token generation (use JWT or a secure mechanism in production)
-        return user.getEmail() + "-auth-token";
-    }
+
 }
-
-

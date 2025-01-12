@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Result</title>
+</head>
+<body>
+<h1>Weather in <span th:text="${weather.cityName}"></span></h1>
+
+<p>Current Temperature: <span th:text="${weather.main.currentTemperature}"></span>°C</p>
+<p>Max Temperature: <span th:text="${weather.main.maxTemperature}"></span>°C</p>
+<p>Min Temperature: <span th:text="${weather.main.minTemperature}"></span>°C</p>
+<p>Humidity: <span th:text="${weather.main.humidity}"></span>%</p>
+<p>Wind Speed: <span th:text="${weather.wind.speed}"></span> m/s</p>
+<p>Weather Description: <span th:text="${weather.weather[0].description}"></span></p>
+
+<a href="/weather">Search Again</a>
+</body>
+</html>

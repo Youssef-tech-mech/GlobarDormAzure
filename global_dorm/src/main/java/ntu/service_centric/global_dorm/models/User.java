@@ -1,75 +1,35 @@
 package ntu.service_centric.global_dorm.models;
 
-import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "users")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Document(collection = "users")
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private ObjectId id; // MongoDB ObjectId
 
-    @Column(nullable = false, unique = true)
+    @NotNull(message = "User ID is required.")
+    private int userID; // Unique numeric ID for the user
+
+    @Email(message = "Email should be valid.")
+    @NotBlank(message = "Email is required.")
     private String email;
 
-    @Column(nullable = false)
+    @NotBlank(message = "Password is required.")
     private String password;
 
-    @Column(nullable = false)
+    @NotBlank(message = "Name is required.")
     private String name;
 
-    @Column(nullable = false)
-    private String role; // Roles: ADMIN, USER, etc.
-
-    public User() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public User(String email, String password, String name, String role) {
-        this.email = email;
-        this.password = password;
-        this.name = name;
-        this.role = role;
-    }
-
+    @NotBlank(message = "Role is required.")
+    private String role; // Admin or User
 }

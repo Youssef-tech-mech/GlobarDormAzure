@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distance Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input, select, button {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #0275d8;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #025aa5;
+        }
+        .optional {
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Distance Calculator</h1>
+    <form action="/api/distance/calculate" method="GET">
+        <label for="profile">Travel Mode:</label>
+        <select id="profile" name="profile">
+            <option value="driving">Driving</option>
+            <option value="cycling">Cycling</option>
+            <option value="walking">Walking</option>
+        </select>
+
+        <label for="startCity">Start City <span class="optional">(optional)</span>:</label>
+        <input type="text" id="startCity" name="startCity" placeholder="Enter start city">
+
+        <label for="roomID">Select Starting Room <span class="optional">(optional)</span>:</label>
+        <select id="roomID" name="roomID">
+            <option value="">None</option>
+            <option th:each="room : ${rooms}" th:value="${room.roomID}" th:text="${room.name}"></option>
+        </select>
+
+        <label for="endCity">End City:</label>
+        <input type="text" id="endCity" name="endCity" placeholder="Enter destination city" required>
+
+        <button type="submit">Calculate Distance</button>
+    </form>
+</div>
+</body>
+</html>

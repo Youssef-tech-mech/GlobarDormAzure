@@ -1,68 +1,36 @@
 package ntu.service_centric.global_dorm.models;
 
+import jakarta.validation.constraints.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Document(collection = "applications")
 public class Application {
 
-    private String id;
-    private String userId;
-    private String roomId;
-    private LocalDateTime applicationDate;
-    private String status;
+    @Id
+    private ObjectId id; // MongoDB ObjectId for unique application ID
 
-    public Application() {
-    }
+    @NotNull(message = "Application ID is required.")
+    private int appID; // Auto-generated, unique application ID
 
+    @NotNull(message = "User ID is required.")
+    private int userID; // Unique user ID
 
-    public Application(String id, String userId, String roomId, LocalDateTime applicationDate, String status) {
-        this.id = id;
-        this.userId = userId;
-        this.roomId = roomId;
-        this.applicationDate = applicationDate;
-        this.status = status;
-    }
+    @NotNull(message = "Room ID is required.")
+    private int roomID; // Room ID
 
+    @NotNull(message = "Application date must be provided.")
+    private LocalDateTime applicationDate; // Date of the application
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getRoomId() {
-        return roomId;
-    }
-
-    public void setRoomId(String roomId) {
-        this.roomId = roomId;
-    }
-
-    public LocalDateTime getApplicationDate() {
-        return applicationDate;
-    }
-
-    public void setApplicationDate(LocalDateTime applicationDate) {
-        this.applicationDate = applicationDate;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-
-
+    @NotBlank(message = "Status is required.")
+    private String status; // Status of the application (e.g., Pending, Approved, Denied)
 }

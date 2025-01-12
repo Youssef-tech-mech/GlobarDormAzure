@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        .field {
+            margin-bottom: 15px;
+        }
+        .field label {
+            display: block;
+            font-weight: bold;
+        }
+        .field span {
+            display: inline-block;
+            margin-top: 5px;
+            padding: 8px 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: calc(100% - 20px);
+        }
+        .field input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #0275d8;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #025aa5;
+        }
+        .message {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>My Profile</h1>
+    <div class="field">
+        <label>Name:</label>
+        <span id="name">Loading...</span>
+    </div>
+    <div class="field">
+        <label>User ID:</label>
+        <span id="userID">Loading...</span>
+    </div>
+    <form id="password-form">
+        <div class="field">
+            <label for="currentPassword">Current Password:</label>
+            <input type="password" id="currentPassword" placeholder="Enter current password" required>
+        </div>
+        <div class="field">
+            <label for="newPassword">New Password:</label>
+            <input type="password" id="newPassword" placeholder="Enter new password" required>
+        </div>
+        <button type="submit">Update Password</button>
+        <div class="message" id="message"></div>
+    </form>
+</div>
+<script>
+    // Fetch profile data
+    fetch('/api/users/profile')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch profile data.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById('name').textContent = data.name;
+            document.getElementById('userID').textContent = data.userID;
+        })
+        .catch(err => {
+            console.error('Error fetching profile:', err);
+            alert('Error loading profile. Please try again.');
+        });
+
+    // Handle password update
+    document.getElementById('password-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const message = document.getElementById('message');
+
+        try {
+            const response = await fetch('/api/users/update-password', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentPassword, newPassword }),
+            });
+
+            if (response.ok) {
+                message.textContent = 'Password updated successfully.';
+                message.style.color = 'green';
+                document.getElementById('password-form').reset();
+            } else {
+                const error = await response.text();
+                message.textContent = error;
+                message.style.color = 'red';
+            }
+        } catch (err) {
+            console.error('Error updating password:', err);
+            message.textContent = 'An error occurred. Please try again.';
+            message.style.color = 'red';
+        }
+    });
+</script>
+</body>
+</html>
