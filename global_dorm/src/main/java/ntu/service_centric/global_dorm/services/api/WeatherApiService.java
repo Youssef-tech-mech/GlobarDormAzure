@@ -8,6 +8,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
+import java.time.LocalDateTime;
+import java.util.concurrent.ConcurrentHashMap;
+
 @Service
 public class WeatherApiService {
 
@@ -20,12 +23,23 @@ public class WeatherApiService {
     private final RestTemplate restTemplate;
     private final Gson gson;
 
+    // Cache with expiration
+    private final ConcurrentHashMap<String, CachedWeather> weatherCache = new ConcurrentHashMap<>();
+
+    private static final long CACHE_EXPIRY_SECONDS = 3600; // 1 hour
+
     public WeatherApiService(RestTemplate restTemplate, Gson gson) {
         this.restTemplate = restTemplate;
         this.gson = gson;
     }
 
     public WeatherResponseDTO getWeatherByCity(String city) {
+        // Check the cache first
+        CachedWeather cachedWeather = weatherCache.get(city.toLowerCase());
+        if (cachedWeather != null && !cachedWeather.isExpired()) {
+            return cachedWeather.getWeatherResponse();
+        }
+
         // Construct the API URL
         String url = String.format("%s?q=%s&appid=%s&units=metric", weatherApiUrl, city, weatherApiKey);
 
@@ -34,7 +48,12 @@ public class WeatherApiService {
             String jsonResponse = restTemplate.getForObject(url, String.class);
 
             // Deserialize JSON into WeatherResponseDTO using Gson
-            return gson.fromJson(jsonResponse, WeatherResponseDTO.class);
+            WeatherResponseDTO weatherResponse = gson.fromJson(jsonResponse, WeatherResponseDTO.class);
+
+            // Cache the response
+            weatherCache.put(city.toLowerCase(), new CachedWeather(weatherResponse));
+
+            return weatherResponse;
 
         } catch (HttpClientErrorException e) {
             throw new RuntimeException("Failed to fetch weather data. Error: " + e.getStatusCode(), e);
@@ -42,6 +61,25 @@ public class WeatherApiService {
             throw new RuntimeException("Network error while accessing the weather service.", e);
         } catch (Exception e) {
             throw new RuntimeException("Unexpected error occurred while fetching weather data.", e);
+        }
+    }
+
+    // Inner class to handle cached weather data
+    private static class CachedWeather {
+        private final WeatherResponseDTO weatherResponse;
+        private final LocalDateTime timestamp;
+
+        public CachedWeather(WeatherResponseDTO weatherResponse) {
+            this.weatherResponse = weatherResponse;
+            this.timestamp = LocalDateTime.now();
+        }
+
+        public WeatherResponseDTO getWeatherResponse() {
+            return weatherResponse;
+        }
+
+        public boolean isExpired() {
+            return LocalDateTime.now().isAfter(timestamp.plusSeconds(CACHE_EXPIRY_SECONDS));
         }
     }
 }

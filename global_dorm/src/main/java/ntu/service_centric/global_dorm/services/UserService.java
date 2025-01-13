@@ -80,30 +80,6 @@ public class UserService {
                 .orElseThrow(() -> new IllegalStateException("No available user IDs."));
     }
 
-    /**
-     * Update an existing user's details.
-     */
-    public Optional<User> updateUser(int userID, User user) {
-        return userRepository.findByUserID(userID).map(existingUser -> {
-            existingUser.setEmail(user.getEmail());
-            existingUser.setName(user.getName());
-            if (!passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
-                existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
-            }
-            existingUser.setRole(user.getRole());
-            return userRepository.save(existingUser);
-        });
-    }
-
-    /**
-     * Delete a user by their userID (int).
-     */
-    public boolean deleteUser(int userID) {
-        return userRepository.findByUserID(userID).map(user -> {
-            userRepository.delete(user);
-            return true;
-        }).orElse(false);
-    }
 
 
 }

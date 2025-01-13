@@ -1,141 +1,207 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile</title>
+    <title>User Profile</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
         }
+
         .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
+            max-width: 900px;
+            margin: 20px auto;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
+
         h1 {
             text-align: center;
+            color: #4CAF50;
         }
-        .field {
-            margin-bottom: 15px;
+
+        p {
+            font-size: 1.1em;
+            margin: 10px 0;
         }
-        .field label {
+
+        .form-section {
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        label {
             display: block;
+            margin-top: 10px;
             font-weight: bold;
         }
-        .field span {
-            display: inline-block;
+
+        input {
+            width: 100%;
+            padding: 10px;
             margin-top: 5px;
-            padding: 8px 10px;
-            background-color: #f9f9f9;
+            margin-bottom: 20px;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            width: calc(100% - 20px);
+            border-radius: 4px;
         }
-        .field input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
+
         button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background-color: #0275d8;
+            background-color: #4CAF50;
             color: white;
+            padding: 10px 15px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
         }
+
         button:hover {
+            background-color: #45a049;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+        }
+
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .back-btn {
+            margin-top: 20px;
+            background-color: #0275d8;
+        }
+
+        .back-btn:hover {
             background-color: #025aa5;
         }
+
         .message {
-            text-align: center;
-            margin-top: 15px;
-            font-weight: bold;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
     </style>
+    <script>
+        function validatePassword(password) {
+            const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+            return passwordPattern.test(password);
+        }
+
+        async function updatePassword(event) {
+            event.preventDefault();
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+
+            try {
+                const response = await fetch('/profile/update-password', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        currentPassword,
+                        newPassword,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorMessage = await response.text();
+                    alert(`Error: ${errorMessage}`);
+                } else {
+                    const result = await response.text();
+                    alert(`Success: ${result}`);
+                }
+            } catch (error) {
+                console.error('Error updating password:', error);
+                alert('An error occurred.');
+            }
+        }
+
+        async function deleteAccount(event) {
+            event.preventDefault();
+
+            const response = await fetch('/profile/delete-account', { method: 'POST' });
+            const result = await response.text();
+
+            if (result.startsWith('success')) {
+                alert('Your account has been deleted.');
+                window.location.href = '/login';
+            } else {
+                handleResponse(result, "Account deletion");
+            }
+        }
+
+        function handleResponse(result, action) {
+            const messageDiv = document.getElementById('message');
+            if (result.startsWith('success')) {
+                messageDiv.className = 'message success';
+            } else {
+                messageDiv.className = 'message error';
+            }
+            messageDiv.textContent = `${action} result: ${result.replace(/^(success|error):\s*/, '')}`;
+        }
+
+        function goToDashboard() {
+            window.location.href = '/dashboard'; // Adjust the path to your dashboard URL
+        }
+    </script>
 </head>
 <body>
 <div class="container">
-    <h1>My Profile</h1>
-    <div class="field">
-        <label>Name:</label>
-        <span id="name">Loading...</span>
-    </div>
-    <div class="field">
-        <label>User ID:</label>
-        <span id="userID">Loading...</span>
-    </div>
-    <form id="password-form">
-        <div class="field">
+    <h1>User Profile</h1>
+
+    <p><strong>Username:</strong> <span th:text="${user.name}">Default Username</span></p>
+    <p><strong>Email:</strong> <span th:text="${user.email}">Default Email</span></p>
+    <p><strong>Role:</strong> <span th:text="${user.role}">Default Role</span></p>
+
+    <div id="message" class="message"></div>
+
+    <div class="form-section">
+        <h2>Update Password</h2>
+        <form onsubmit="updatePassword(event)">
             <label for="currentPassword">Current Password:</label>
-            <input type="password" id="currentPassword" placeholder="Enter current password" required>
-        </div>
-        <div class="field">
+            <input type="password" id="currentPassword" name="currentPassword" required>
+
             <label for="newPassword">New Password:</label>
-            <input type="password" id="newPassword" placeholder="Enter new password" required>
-        </div>
-        <button type="submit">Update Password</button>
-        <div class="message" id="message"></div>
-    </form>
+            <input type="password" id="newPassword" name="newPassword" required>
+
+            <button type="submit">Update Password</button>
+        </form>
+    </div>
+
+    <div class="form-section">
+        <h2>Delete Account</h2>
+        <form onsubmit="deleteAccount(event)">
+            <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+            <button type="submit" class="delete-btn">Delete Account</button>
+        </form>
+    </div>
+
+    <button class="back-btn" onclick="goToDashboard()">Back to Dashboard</button>
 </div>
-<script>
-    // Fetch profile data
-    fetch('/api/users/profile')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch profile data.');
-            }
-            return response.json();
-        })
-        .then(data => {
-            document.getElementById('name').textContent = data.name;
-            document.getElementById('userID').textContent = data.userID;
-        })
-        .catch(err => {
-            console.error('Error fetching profile:', err);
-            alert('Error loading profile. Please try again.');
-        });
-
-    // Handle password update
-    document.getElementById('password-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const currentPassword = document.getElementById('currentPassword').value;
-        const newPassword = document.getElementById('newPassword').value;
-        const message = document.getElementById('message');
-
-        try {
-            const response = await fetch('/api/users/update-password', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ currentPassword, newPassword }),
-            });
-
-            if (response.ok) {
-                message.textContent = 'Password updated successfully.';
-                message.style.color = 'green';
-                document.getElementById('password-form').reset();
-            } else {
-                const error = await response.text();
-                message.textContent = error;
-                message.style.color = 'red';
-            }
-        } catch (err) {
-            console.error('Error updating password:', err);
-            message.textContent = 'An error occurred. Please try again.';
-            message.style.color = 'red';
-        }
-    });
-</script>
 </body>
 </html>
