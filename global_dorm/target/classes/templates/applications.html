@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Applications</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #0275d8;
+            color: white;
+        }
+        .action-buttons button {
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            background-color: #d9534f;
+            color: white;
+        }
+        .action-buttons button:hover {
+            background-color: #c9302c;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>My Applications</h1>
+    <table>
+        <thead>
+        <tr>
+            <th>Application ID</th>
+            <th>Room ID</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="applications-table">
+        <!-- Dynamically filled with applications -->
+        </tbody>
+    </table>
+</div>
+<script>
+    async function fetchApplications() {
+        try {
+            const response = await fetch('/applications/api');
+            if (!response.ok) {
+                throw new Error('Failed to fetch applications.');
+            }
+            const applications = await response.json();
+
+            const tableBody = document.getElementById('applications-table');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            applications.forEach(app => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${app.appID}</td>
+                    <td>${app.roomID}</td>
+                    <td>${app.status}</td>
+                    <td class="action-buttons">
+                        <button onclick="cancelApplication(${app.appID})">Cancel</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } catch (err) {
+            console.error('Error fetching applications:', err);
+            alert('Failed to load applications. Please try again.');
+        }
+    }
+
+    async function cancelApplication(appID) {
+        if (!confirm('Are you sure you want to cancel this application?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/applications/api/${appID}/cancel`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert(`Application ${appID} cancelled successfully.`);
+                fetchApplications(); // Refresh the table
+            } else {
+                const error = await response.text();
+                alert(`Failed to cancel the application: ${error}`);
+            }
+        } catch (err) {
+            console.error('Error cancelling application:', err);
+            alert('An error occurred while cancelling the application.');
+        }
+    }
+
+    // Fetch applications on page load
+    document.addEventListener('DOMContentLoaded', fetchApplications);
+</script>
+</body>
+</html>

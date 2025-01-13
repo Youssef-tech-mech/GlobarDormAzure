@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        form {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        h1 {
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #0275d8;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #025aa5;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<h1>Application Form</h1>
+<div id="error" class="error"></div>
+<form id="applicationForm" action="/applications/api/submit" method="POST">
+    <label for="roomID">Room:</label>
+    <select id="roomID" name="roomID" required>
+        <option value="" disabled selected>Select a Room</option>
+    </select>
+
+    <label for="userID">User ID:</label>
+    <input type="text" id="userID" name="userID" placeholder="Enter Your User ID" required>
+
+    <button type="submit">Submit Application</button>
+</form>
+
+<script>
+    const roomSelect = document.getElementById('roomID');
+    const errorDiv = document.getElementById('error');
+
+    // Fetch available rooms and populate the dropdown
+    async function fetchAvailableRooms() {
+        try {
+            const response = await fetch('/api/rooms/available');
+            if (!response.ok) throw new Error('Failed to fetch available rooms.');
+
+            const rooms = await response.json();
+            rooms.forEach(room => {
+                const option = document.createElement('option');
+                option.value = room.roomID;
+                option.textContent = `Room ${room.roomID} - ${room.name} (${room.city})`;
+                roomSelect.appendChild(option);
+            });
+        } catch (error) {
+            errorDiv.textContent = error.message;
+        }
+    }
+
+    // Call the function on page load
+    fetchAvailableRooms();
+</script>
+</body>
+</html>

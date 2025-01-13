@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration</title>
+    <style>
+        /* Same styling as login page */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 50%;
+            margin: auto;
+            overflow: hidden;
+            background: white;
+            padding: 30px;
+            margin-top: 50px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            color: #555;
+        }
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #4cae4c;
+        }
+        .switch {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .switch a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>User Registration</h1>
+    <form id="register-form">
+        <div id="error-message" class="error"></div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <button type="submit">Register</button>
+    </form>
+    <div class="switch">
+        <p>Already have an account? <a href="/login">Login</a></p>
+    </div>
+</div>
+<script>
+    const registerForm = document.getElementById("register-form");
+    const errorMessage = document.getElementById("error-message");
+
+    registerForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorMessage.textContent = "";
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const name = document.getElementById("name").value;
+
+        try {
+            const response = await fetch("/api/credentials/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username: email, password, name }),
+            });
+
+            if (response.ok) {
+                alert("Registration successful! Please log in.");
+                window.location.href = "/login";
+            } else {
+                const error = await response.json();
+                errorMessage.textContent = error.message || "Registration failed.";
+            }
+        } catch (err) {
+            errorMessage.textContent = "An error occurred. Please try again.";
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+ntu\service_centric\global_dorm\AppConfig.class
+ntu\service_centric\global_dorm\config\CacheConfig.class
+ntu\service_centric\global_dorm\GlobalDorm.class
+ntu\service_centric\global_dorm\config\SecurityConfig.class

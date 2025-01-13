@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 100px);
+            padding: 20px;
+        }
+
+        h1 {
+            color: #4CAF50;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .weather-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        a, button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        a:hover, button:hover {
+            background-color: #45a049;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    Weather Result
+</header>
+<main>
+    <div class="weather-icon">
+        <span th:if="${weather.weather[0]?.description?.toLowerCase() == 'clouds'}">☁️</span>
+        <span th:if="${weather.weather[0]?.description?.toLowerCase() == 'rain'}">🌧️</span>
+        <span th:if="${weather.weather[0]?.description?.toLowerCase() == 'clear sky'}">☀️</span>
+        <span th:if="${weather.weather[0]?.description?.toLowerCase() == 'snow'}">❄️</span>
+        <span th:if="${weather.weather[0]?.description?.toLowerCase() == 'thunderstorm'}">⛈️</span>
+        <span th:if="${weather.weather[0]?.description?.toLowerCase() == 'drizzle'}">🌦️</span>
+        <span th:if="${weather.weather[0]?.description?.toLowerCase() == 'mist' || weather.weather[0]?.description?.toLowerCase() == 'fog'}">🌫️</span>
+    </div>
+
+
+    <h1>Weather in <span th:text="${weather.cityName}"></span></h1>
+
+    <p>Current Temperature: <span th:text="${weather.main.currentTemperature}"></span>°C</p>
+    <p>Max Temperature: <span th:text="${weather.main.maxTemperature}"></span>°C</p>
+    <p>Min Temperature: <span th:text="${weather.main.minTemperature}"></span>°C</p>
+    <p>Humidity: <span th:text="${weather.main.humidity}"></span>%</p>
+    <p>Wind Speed: <span th:text="${weather.wind.speed}"></span> m/s</p>
+    <p>Weather Description: <span th:text="${weather.weather[0].description}"></span></p>
+
+    <div class="button-container">
+        <a href="/weather">Search Again</a>
+        <button onclick="window.location.href='/dashboard'">Dashboard</button>
+    </div>
+</main>
+</body>
+</html>
